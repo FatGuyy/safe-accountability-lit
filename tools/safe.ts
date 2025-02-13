@@ -1,9 +1,11 @@
+// 0x53b2b1795ed7C16C7956c86a131F3B546D668d1d
+
 /// <reference types="node" />
 import { z } from "zod";
 import { ethers } from "ethers";
-import Safe from "@safe-global/protocol-kit";
-import { createPublicClient, http } from "viem";
-import { sepolia } from "viem/chains";
+// import Safe from "@safe-global/protocol-kit";
+// import { createPublicClient, http } from "viem";
+// import { sepolia } from "viem/chains";
 import { createSafeClient } from '@safe-global/sdk-starter-kit';
 
 
@@ -34,8 +36,8 @@ export const deployNewSafe = async () => {
       owners: [process.env.AGENT_PRIVATE_KEY as string],
       threshold: 1
     }
-  })
-  
+  });
+
   const safeAddress = await safeClient.getAddress();
 
   return `A new Safe multisig was successfully deployed on Sepolia. You can see it live at https://app.safe.global/home?safe=sep:${safeAddress}. The saltNonce used was ${saltNonce}.
@@ -48,18 +50,11 @@ export const sendRandomTnx = async ({ safeAddress }) =>{
     provider: "https://rpc.ankr.com/eth_sepolia",
     signer: process.env.AGENT_PRIVATE_KEY,
     safeAddress: safeAddress
-  })
+  });
 
-  const transactions = [{
-    to: safeAddress,
-    data: 'The bet is that everyone will lose 5 kgs over the next two months',
-    value: '0'
-  }]
+  const some = safeClient.getPendingTransactions();
 
-  const txResult = await safeClient.send({ transactions });
-  const safeTxHash = txResult.transactions?.safeTxHash;
-
-  return `The transaction has been created successfully! This is the hash ${safeTxHash}.
+  return `The transaction has been created successfully! This is the hash.
   tell the user that you've sent the transaction and it has been created successfully `
 };
 

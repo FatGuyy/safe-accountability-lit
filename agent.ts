@@ -66,7 +66,7 @@ const main = async () => {
   const agentNextState = await agent.invoke(
     {
       messages: [
-        new HumanMessage("Send a transaction to this safe smart accoung - 0x0d65036474Df6E40dBc1dd865CcC395C8adc03B2 "),
+        new HumanMessage("Send a transaction to this safe smart accoung - sep:0x53b2b1795ed7C16C7956c86a131F3B546D668d1d "),
       ],
     },
     { configurable: { thread_id: "42" } }

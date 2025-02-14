@@ -64,9 +64,13 @@ const commands = [
             .setRequired(true)
     )
     .addStringOption(option =>
-        option.setName('proof')
-            .setDescription('Proof of completion (URL, text, etc.)')
-            .setRequired(true)
+      option.setName('proof')
+        .setDescription('completed/failed')
+        .setRequired(true)
+        .addChoices(
+            { name: 'completed', value: 'completed' },
+            { name: 'failed', value: 'failed' }
+        )
     )
     .toJSON(),
   new SlashCommandBuilder()
@@ -84,11 +88,11 @@ const commands = [
     )
     .addStringOption(option =>
         option.setName('vote')
-            .setDescription('Vote "yes" or "no"')
+            .setDescription('completed/failed')
             .setRequired(true)
             .addChoices(
-                { name: 'Yes', value: 'yes' },
-                { name: 'No', value: 'no' }
+                { name: 'completed', value: 'completed' },
+                { name: 'failed', value: 'failed' }
             )
     )
     .toJSON(),

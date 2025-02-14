@@ -1,0 +1,9 @@
+{
+  "authSig": {
+    "sig": "0x1d4fc1c8f8263538546af28202e36a92a8c906f45791c14dedce30e323fd13be0dcdf86d069869dd6d2f7aa584b8f2525719fed87adad898b6514582a4f2928b1b",
+    "derivedVia": "web3.eth.personal.sign",
+    "signedMessage": "localhost:1210 wants you to sign in with your Ethereum account:\n0x7e41530294092d856F3899Dd87A5756e00da1e7a\n\n\nURI: http://localhost:1210/auth\nVersion: 1\nChain ID: 1\nNonce: YQJPRS771DNlzW7Bj\nIssued At: 2025-02-14T13:52:10.584Z\nExpiration Time: 2025-02-15T13:52:03.661Z",
+    "address": "0x7e41530294092d856f3899dd87a5756e00da1e7a"
+  },
+  "pkpPublicKey": "0x04ea331c0f07591208d50f31055479e5504b6bdd7540a84e0185a89bd93ea5b938d6ad06101fb5f74808b1b97455bb2c567e3a8703496e5f0913bd2d6cb563e681"
+}

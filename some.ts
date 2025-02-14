@@ -20,10 +20,6 @@ async function send() {
 
 // send();
 
-const client = createPublicClient({
-  chain: sepolia,
-  transport: http(`https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`)
-});
 
 export async function verifyUSDCTransfer(
   txHash: Hash,
@@ -31,6 +27,10 @@ export async function verifyUSDCTransfer(
   expectedReceiver: Address,
   expectedAmount: bigint
 ): Promise<boolean> {
+  const client = createPublicClient({
+    chain: sepolia,
+    transport: http(`https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`)
+  });
   try {
     // Fetch transaction receipt (ERC-20 transfers are in logs, not in transaction details)
     const receipt = await client.getTransactionReceipt({ hash: txHash });
@@ -73,7 +73,7 @@ export async function verifyUSDCTransfer(
   const txHash: Hash = '0x0bf4001ec740278e9656401ad606db1527bdbba31de5a4fc12bb26f6e7a7785f';
   const sender: Address = '0x7e41530294092d856F3899Dd87A5756e00da1e7a';
   const receiver: Address = '0x53b2b1795ed7C16C7956c86a131F3B546D668d1d';
-  const amount: bigint = BigInt('1000000'); // 1 ETH in wei
+  const amount: bigint = BigInt('1000000'); // 1 USDC
 
   const isValid = await verifyUSDCTransfer(txHash, sender, receiver, amount);
   console.log('Is transaction valid?', isValid);

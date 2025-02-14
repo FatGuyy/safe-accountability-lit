@@ -7,8 +7,12 @@ import { Client,
 import 'dotenv/config';
 import { createCon, endCon, runQuery } from './bot/database';
 import { agent } from './agent';
-import { isValidEthereumAddress, isAdmin, verifyUSDCTransfer } from './utils';
 import { HumanMessage } from "@langchain/core/messages";
+import { isValidEthereumAddress, 
+    isAdmin, 
+    verifyUSDCTransfer, 
+    addOwner 
+} from './utils';
 
 var con = createCon;
 
@@ -144,14 +148,14 @@ client.on('interactionCreate', async interaction => {
         // }
 
         // Call agent to deploy safe!
-        // const agentFinalState = await agent.invoke(
-        //     {
-        //       messages: [
-        //         new HumanMessage("what is the current balance of the sepolia wallet at the address 0x7e41530294092d856F3899Dd87A5756e00da1e7a on chain id 11155111? Please answer in ETH and its total value in USD."),
-        //       ],
-        //     },
-        //     { configurable: { thread_id: "42" } }
-        //   );
+        const agentFinalState = await agent.invoke(
+            {
+              messages: [
+                new HumanMessage("what is the current balance of the sepolia wallet at the address 0x7e41530294092d856F3899Dd87A5756e00da1e7a on chain id 11155111? Please answer in ETH and its total value in USD."),
+              ],
+            },
+            { configurable: { thread_id: "42" } }
+          );
         
         const content = `**🌐 Safe Multisignature Wallet Deployed Successfully 🌐**
           Here are the details of your newly deployed Safe multisig wallet on Sepolia:
@@ -280,6 +284,7 @@ client.on('interactionCreate', async interaction => {
         }
 
         await interaction.editReply(`✅ Payment verified! You are now a confirmed participant in Bet #${betId}.`);
+        addOwner(receiver, sender);
     }
 
     // end_bet Command
@@ -524,7 +529,16 @@ client.on('interactionCreate', async interaction => {
     
         // Distribute funds (Call Safe Smart Account or AI Agent to transfer winnings)
         try {
-            await distributeWinnings(betId, userDiscordId);
+            // await distributeWinnings(betId, userDiscordId);
+            const agentFinalState = await agent.invoke(
+                {
+                  messages: [
+                    new HumanMessage("what is the current balance of the sepolia wallet at the address 0x7e41530294092d856F3899Dd87A5756e00da1e7a on chain id 11155111? Please answer in ETH and its total value in USD."),
+                  ],
+                },
+                { configurable: { thread_id: "42" } }
+              );
+
             await runQuery(
                 con,
                 `INSERT INTO redemptions (bet_id, participant_discord_id, status) VALUES (${betId}, '${userDiscordId}', 'redeemed')`,

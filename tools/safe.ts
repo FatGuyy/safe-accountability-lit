@@ -44,6 +44,39 @@ export const deployNewSafe = async () => {
   // Now, tell the user that you have create this safe and give the above details to the user in a good format. Make sure the first address in your response is the safe Address.`;
 };
 
+export function calculateUSDCdistribution({n, d, f}): string {
+  // Validate inputs
+  if (n <= 0 || d <= 0 || f < 0 || f > n) {
+      throw new Error("Invalid input parameters. Ensure n > 0, d > 0, and 0 <= f <= n.");
+  }
+
+  // If no one failed, no distribution is needed
+  if (f === 0) {
+      return  "No one failed. No funds to distribute.";
+  }
+
+  // Calculate total distribution and reward per successful participant
+  const totalDistribution = f * d;
+  const s = n - f; // Number of successful participants
+  const rewardPerSuccessfulParticipant = totalDistribution / s;
+
+  return `Each successful participant receives ${rewardPerSuccessfulParticipant.toFixed(2)} USDC.`;
+}
+
+export const calculateUSDCdistributionMetadata = {
+  name: "calculateUSDCdistribution",
+  description:
+    "Calculates the USDC distribution for an accountability platform. It determines how much each successful participant receives when failed participants forfeit their deposits.",
+  schema: z
+    .object({
+      n: z.number().positive("Total participants (n) must be a positive number."),
+      d: z.number().positive("Deposit amount (d) must be a positive number."),
+      f: z.number().nonnegative("Number of failures (f) must be a non-negative number."),
+    }),
+};
+
+
+
 export const sendRandomTnx = async ({ safeAddress }) =>{
 
   const safeClient = await createSafeClient({

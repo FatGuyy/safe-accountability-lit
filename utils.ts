@@ -1,8 +1,12 @@
 import { CommandInteraction, PermissionFlagsBits } from 'discord.js';
 import { createPublicClient, http, Address, Hash, parseEventLogs, parseAbi } from 'viem';
 import { sepolia } from 'viem/chains';
+import {
+  createSafeClient,
+} from '@safe-global/sdk-starter-kit';
 
-
+const ABI = [{"inputs":[{"internalType":"address","name":"_singleton","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"stateMutability":"payable","type":"fallback"}];
+const RPC_URL = `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`;
 const USDC_ADDRESS: Address = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
 const ERC20_ABI = parseAbi(['event Transfer(address indexed from, address indexed to, uint256 value)']);
 
@@ -61,3 +65,23 @@ export async function verifyUSDCTransfer(
     return false;
   }
 }
+
+export const addOwner = async (safeAddress: string = "0x53b2b1795ed7C16C7956c86a131F3B546D668d1d", newOwner: string) =>{
+
+	const safeClient = await createSafeClient({
+		provider: RPC_URL,
+		signer: process.env.AGENT_PRIVATE_KEY,
+		safeAddress: '0x53b2b1795ed7C16C7956c86a131F3B546D668d1d',
+	});
+	console.log("safe Cleint - ", safeClient);
+  const transaction = await safeClient.createAddOwnerTransaction({
+    ownerAddress: '0x...',
+    threshold: 2
+  })
+
+  const txResult = await safeClient.send({
+    transactions: [transaction]
+  })
+  
+  console.log(await txResult);
+};

@@ -10,13 +10,16 @@ import {
   getEthBalance,
   getEthBalanceMetadata,
   sendRandomTnx,
-  sendRandomTnxMetadata
+  sendRandomTnxMetadata,
+  calculateUSDCdistribution,
+  calculateUSDCdistributionMetadata
 } from "./tools/safe";
 import { getEthPriceUsd, getEthPriceUsdMetadata } from "./tools/prices";
 import { multiply, multiplyMetadata } from "./tools/math";
 
 // Define the tools for the agent to use
 const agentTools = [
+  tool(calculateUSDCdistribution, calculateUSDCdistributionMetadata),
   tool(sendRandomTnx, sendRandomTnxMetadata),
   tool(getEthBalance, getEthBalanceMetadata),
   tool(getEthPriceUsd, getEthPriceUsdMetadata),  

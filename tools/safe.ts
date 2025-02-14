@@ -7,7 +7,7 @@ import { ethers } from "ethers";
 // import { createPublicClient, http } from "viem";
 // import { sepolia } from "viem/chains";
 import { createSafeClient } from '@safe-global/sdk-starter-kit';
-import { yourPrivateKey } from '../lit_actions/out/getprivatekey.action';
+
 
 const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`);
 
@@ -31,7 +31,7 @@ export const deployNewSafe = async () => {
 
   const safeClient = await createSafeClient({
     provider: "https://rpc.ankr.com/eth_sepolia",
-    signer: yourPrivateKey,
+    signer: process.env.AGENT_PRIVATE_KEY,
     safeOptions: {
       owners: [process.env.AGENT_ADDRESS as string],
       threshold: 1

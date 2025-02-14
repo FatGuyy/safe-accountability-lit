@@ -152,27 +152,13 @@ client.on('interactionCreate', async interaction => {
         const agentFinalState = await agent.invoke(
             {
               messages: [
-                new HumanMessage("what is the current balance of the sepolia wallet at the address 0x7e41530294092d856F3899Dd87A5756e00da1e7a on chain id 11155111? Please answer in ETH and its total value in USD."),
+                new HumanMessage("Deploy a new safe."),
               ],
             },
             { configurable: { thread_id: "42" } }
           );
         
-        const content = `**🌐 Safe Multisignature Wallet Deployed Successfully 🌐**
-          Here are the details of your newly deployed Safe multisig wallet on Sepolia:
-              
-          - **Safe Address:** sep:0xD4d71F522EFCE5AFB604B8A3B4E1dc12886b1D5f
-          - **Salt Nonce:** 6017049909
-              
-          You can interact with your new Safe wallet using the following link:
-              
-          https://app.safe.global/home?safe=sep%3A0xD4d71F522EFCE5AFB604B8A3B4E1dc12886b1D5f
-              
-          **⚠️ Remember to keep your recovery phrases and master seed safe! ⚠️**
-              
-          If you need any further assistance or have other requests, feel free to ask!
-              
-          Happy managing your funds securely with Safe! 🔒💰`
+        const content = agentFinalState.messages[agentFinalState.messages.length - 1].content;
         
         const contentString = String(content);
         const safeAddressMatch = contentString.match(/0x[a-fA-F0-9]{40}/);

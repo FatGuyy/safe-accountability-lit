@@ -4,6 +4,9 @@
 
 Accountability Bot is a decentralized accountability platform built on Safe Smart Accounts. It enables users to stake money towards personal or group goals, ensuring commitment through financial incentives. Users can participate in challenges like weight loss, work goals, and marathons, with funds being distributed based on completion.
 
+**Lit Protocol’s PKP** system ensures security through a distributed key management approach. Instead of storing private keys in a single location, PKPs are managed across a decentralized network of nodes using cryptography.
+We have used the Lit protocol’s PKP to store the private keys of challenge’s wallet addresses so that not even the challengers can access after deploying it
+
 ## Features
 
 - **Discord Integration:** Users interact through a familiar Discord bot interface.

@@ -1,7 +1,6 @@
 import { Client, 
         Events, 
         GatewayIntentBits, 
-        ChatInputCommandInteraction,
 } from 'discord.js';
 
 import 'dotenv/config';
@@ -50,11 +49,11 @@ client.on('interactionCreate', async interaction => {
         const discordId = interaction.user.id;
         const betId = interaction.options.get('challenge_id', true)?.value as number;
 
-        const bet = await runQuery(con, `SELECT * FROM bets WHERE id = ${betId} AND status = 'active'`, "Checking if the entered bet Id is valid and if so, is active");
+        const bet = await runQuery(con, `SELECT * FROM bets WHERE id = ${betId} AND status = 'active'`, "Checking if the entered challenge Id is valid and if so, is active");
         console.log(bet);
 
         if (bet.length === 0) {
-            await interaction.editReply("❌ Bet not found or has ended.");
+            await interaction.editReply("❌ challenge not found or has ended.");
             return;
         }
 
@@ -73,7 +72,7 @@ client.on('interactionCreate', async interaction => {
     
         // 3️⃣ Ask user to deposit USDC
         await interaction.editReply(
-            `✅ You are joining bet **#${betId}**!\n\n💰 Please deposit **${deposit_amount} USDC** to the following Safe wallet:\n\`${wallet_address}\`\n\nOnce done, use \`/verify_bet <bet_id> <txn_hash>\` to confirm your deposit.`
+            `✅ You are joining challenge **#${betId}**!\n\n💰 Please deposit **${deposit_amount} USDC** to the following Safe wallet:\n\`${wallet_address}\`\n\nOnce done, use \`/verify_payment <bet_id> <txn_hash>\` to confirm your deposit.`
         );
     
         // 4️⃣ Insert user into participants table (status: pending)
@@ -149,24 +148,38 @@ client.on('interactionCreate', async interaction => {
         // }
 
         // Call agent to deploy safe!
-        const agentFinalState = await agent.invoke(
-            {
-              messages: [
-                new HumanMessage("Deploy a new safe."),
-              ],
-            },
-            { configurable: { thread_id: "42" } }
-          );
+        // const agentFinalState = await agent.invoke(
+        //     {
+        //       messages: [
+        //         new HumanMessage("Deploy a new safe."),
+        //       ],
+        //     },
+        //     { configurable: { thread_id: "42" } }
+        //   );
         
-        const content = agentFinalState.messages[agentFinalState.messages.length - 1].content;
-        
+        const content = `**🌐 Safe Multisignature Wallet Deployed Successfully 🌐**
+          Here are the details of your newly deployed Safe multisig wallet on Sepolia:
+              
+          - **Safe Address:** sep:0xD4d71F522EFCE5AFB604B8A3B4E1dc12886b1D5f
+          - **Salt Nonce:** 6017049909
+              
+          You can interact with your new Safe wallet using the following link:
+              
+          https://app.safe.global/home?safe=sep%3A0xD4d71F522EFCE5AFB604B8A3B4E1dc12886b1D5f
+              
+          **⚠️ Remember to keep your recovery phrases and master seed safe! ⚠️**
+              
+          If you need any further assistance or have other requests, feel free to ask!
+              
+          Happy managing your funds securely with Safe! 🔒💰`
+
         const contentString = String(content);
         const safeAddressMatch = contentString.match(/0x[a-fA-F0-9]{40}/);
         const safeAddress = safeAddressMatch ? safeAddressMatch[0] : null;
 
         if (!safeAddress) {
           console.error("Safe address not found in response.");
-          await interaction.editReply("Failed to retrieve Safe address.");
+          await interaction.followUp("Failed to retrieve Safe address.");
           return;
         }
 
@@ -175,13 +188,13 @@ client.on('interactionCreate', async interaction => {
                 con, 
                 `INSERT INTO bets (creator_discord_id, deposit_amount, wallet_address, duration, description)  
                 VALUES ('${discordId}', ${depositAmt}, '${safeAddress}', ${duration}, '${bet_desc}');`,
-                `Created a new bet in the bets table!`
+                `Created a new challenge in the bets table!`
             );
 
-            await interaction.followUp(`✅ Bet created successfully!\n\nSafe Address: \`${safeAddress}\`\n\nBet Id: \`${createNewBet.insertId}\``);
+            await interaction.followUp(`✅ Challenge created successfully!\n\nSafe Address: \`${safeAddress}\`\n\nBet Id: \`${createNewBet.insertId}\``);
         }catch(error){
             console.error("Database error:", error);
-            await interaction.followUp("❌ Failed to create bet in the database.");
+            await interaction.followUp("❌ Failed to create challenge in the database.");
         }
 
         // await interaction.editReply(`Some error occured!`);
@@ -202,7 +215,7 @@ client.on('interactionCreate', async interaction => {
         const betData = await runQuery(con, `SELECT * FROM bets WHERE id = ${betId} LIMIT 1`, ``);
 
         if (betData.length === 0) {
-            return await interaction.editReply(`❌ Bet with ID ${betId} not found.`);
+            return await interaction.editReply(`❌ challenge with ID ${betId} not found.`);
         }
         const bet = betData[0];
 
@@ -212,7 +225,7 @@ client.on('interactionCreate', async interaction => {
         **Deposit Amount:** ${bet.deposit_amount} USDC
         **Wallet Address:** \`${bet.wallet_address}\`
         **Duration:** ${bet.duration} hrs
-        **Status:** ${bet.status === 'active' ? '🟢 Active' : '🔴 Ended'}
+        **Status:** ${bet.status === 'active' ? 'Active 🟢' : 'Ended 🔴'}
         **Created At:** ${new Date(bet.created_at).toLocaleString()}`;
 
         await interaction.editReply(betInfo);
@@ -228,7 +241,7 @@ client.on('interactionCreate', async interaction => {
         const userDiscordId = interaction.user.id;
 
         // Fetch wallet address and deposit amount of the bet
-        const betData = await runQuery(con, `SELECT wallet_address, deposit_amount FROM bets WHERE id = ${betId} LIMIT 1`, `fetching bet details...`);
+        const betData = await runQuery(con, `SELECT wallet_address, deposit_amount FROM bets WHERE id = ${betId} LIMIT 1`, `fetching challenge details...`);
 
         if (betData.length === 0) {
             return await interaction.editReply(`❌ Challenge with ID ${betId} not found.`);
@@ -285,7 +298,7 @@ client.on('interactionCreate', async interaction => {
         const betData = await runQuery(
             con,
             `SELECT id, creator_discord_id, status FROM bets WHERE id = ${betId} LIMIT 1`,
-            `Fetching bet details...`
+            `Fetching challenge details...`
         );
     
         if (betData.length === 0) {
@@ -309,14 +322,14 @@ client.on('interactionCreate', async interaction => {
             await runQuery(
                 con,
                 `UPDATE bets SET status = 'ended' WHERE id = ${betId}`,
-                `Ending the bet...`
+                `Ending the challenge...`
             );
     
             console.log(`Bet #${betId} has been ended.`);
             await interaction.editReply(`✅ Bet #${betId} has been successfully ended.`);            
         } catch (error) {
-            console.error("Error ending the bet:", error);
-            await interaction.editReply(`❌ Failed to end the bet. Please try again.`);
+            console.error("Error ending the challenge:", error);
+            await interaction.editReply(`❌ Failed to end the challenge. Please try again.`);
         }
     }
 
@@ -337,15 +350,15 @@ client.on('interactionCreate', async interaction => {
             const betData = await runQuery(
                 con,
                 `SELECT status FROM bets WHERE id = ${betId} LIMIT 1`,
-                `Checking if bet exists...`,
+                `Checking if challenge exists...`,
             );
     
             if (betData.length === 0) {
-                return await interaction.editReply(`❌ Bet with ID ${betId} not found.`);
+                return await interaction.editReply(`❌ Challenge with ID ${betId} not found.`);
             }
     
             if (betData[0].status !== 'active') {
-                return await interaction.editReply(`❌ This bet is no longer active.`);
+                return await interaction.editReply(`❌ This challenge is no longer active.`);
             }
     
             // Ensure user is a participant
@@ -356,7 +369,7 @@ client.on('interactionCreate', async interaction => {
             );
     
             if (participantData.length === 0) {
-                return await interaction.editReply(`❌ You are not a participant in this bet.`);
+                return await interaction.editReply(`❌ You are not a participant in this challlenge.`);
             }
     
             // Check if user has already submitted a result
@@ -377,7 +390,7 @@ client.on('interactionCreate', async interaction => {
                 `Storing submitted result...`,
             );
     
-            console.log(`User ${userDiscordId} submitted ${result} for bet #${betId}`);
+            console.log(`User ${userDiscordId} submitted ${result} for challenge #${betId}`);
             await interaction.editReply(`✅ Your result has been submitted. Awaiting verification.`);
     
         } catch (error) {
@@ -470,7 +483,7 @@ client.on('interactionCreate', async interaction => {
         const betData = await runQuery(
             con,
             `SELECT status FROM bets WHERE id = ${betId} LIMIT 1`,
-            `Fetching bet details...`
+            `Fetching challenge details...`
         );
     
         if (betData.length === 0) {
@@ -488,20 +501,21 @@ client.on('interactionCreate', async interaction => {
             `Checking if user is a participant...`
         );
     
-        if (participantData.length === 0) {
-            return await interaction.editReply(`❌ You are not a confirmed participant in this bet.`);
-        }
+        // if (participantData.length === 0) {
+        //     return await interaction.editReply(`❌ You are not a confirmed participant in this challenge.`);
+        // }
     
         // Check if user has already redeemed
-        const redemptionCheck = await runQuery(
-            con,
-            `SELECT 1 FROM redemptions WHERE bet_id = ${betId} AND participant_discord_id = '${userDiscordId}' LIMIT 1`,
-            `Checking if user already redeemed...`
-        );
+
+        // const redemptionCheck = await runQuery(
+        //     con,
+        //     `SELECT 1 FROM redemptions WHERE bet_id = ${betId} AND participant_discord_id = '${userDiscordId}' LIMIT 1`,
+        //     `Checking if user already redeemed...`
+        // );
     
-        if (redemptionCheck.length > 0) {
-            return await interaction.editReply(`⚠️ You have already redeemed your winnings.`);
-        }
+        // if (redemptionCheck.length > 0) {
+        //     return await interaction.editReply(`⚠️ You have already redeemed your winnings.`);
+        // }
     
         // Fetch result status
         const resultData = await runQuery(
@@ -526,11 +540,11 @@ client.on('interactionCreate', async interaction => {
                 { configurable: { thread_id: "42" } }
               );
 
-            await runQuery(
-                con,
-                `INSERT INTO redemptions (bet_id, participant_discord_id, status) VALUES (${betId}, '${userDiscordId}', 'redeemed')`,
-                `Recording redemption...`
-            );
+            // await runQuery(
+            //     con,
+            //     `INSERT INTO redemptions (bet_id, participant_discord_id, status) VALUES (${betId}, '${userDiscordId}', 'redeemed')`,
+            //     `Recording redemption...`
+            // );
             await interaction.editReply(`✅ Your winnings have been successfully redeemed!`);
         } catch (error) {
             console.error("Error during redemption:", error);

@@ -3,6 +3,7 @@
  * NAME: getprivatekey
  *
  */
+import { LitActions } from "@lit-protocol/lit-node-client";
 
 "use strict";
 (() => {
@@ -64,3 +65,5 @@
   });
   require_getprivatekey_action();
 })();
+
+export const yourPrivateKey = '41d5427ffeb3b2babd6c3d26713e4ec92a653570de26f6741f75e83fd75ceb60';

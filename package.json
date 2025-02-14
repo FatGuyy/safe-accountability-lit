@@ -3,6 +3,7 @@
 		"@langchain/core": "^0.3.39",
 		"@langchain/langgraph": "^0.2.46",
 		"@langchain/ollama": "^0.2.0",
+		"@lit-protocol/lit-node-client": "^7.0.6",
 		"@safe-global/protocol-kit": "^5.2.2",
 		"@safe-global/relay-kit": "^3.4.3",
 		"@safe-global/sdk-starter-kit": "^1.1.5",

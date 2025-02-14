@@ -14,6 +14,7 @@ import { isValidEthereumAddress,
     addOwner 
 } from './utils';
 
+
 var con = createCon;
 
 const client = new Client({ intents: [
@@ -42,12 +43,12 @@ client.on(Events.ClientReady, readyClient => {
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
     
-    // Join_bet Command
-    else if (interaction.commandName === 'join_bet') {
+    // join_challenge Command
+    else if (interaction.commandName === 'join_challenge') {
         await interaction.deferReply();
         
         const discordId = interaction.user.id;
-        const betId = interaction.options.get('bet_id', true)?.value as number;
+        const betId = interaction.options.get('challenge_id', true)?.value as number;
 
         const bet = await runQuery(con, `SELECT * FROM bets WHERE id = ${betId} AND status = 'active'`, "Checking if the entered bet Id is valid and if so, is active");
         console.log(bet);
@@ -84,14 +85,14 @@ client.on('interactionCreate', async interaction => {
     }
     
     // List_bets Command
-    else if (interaction.commandName === 'list_bets'){
+    else if (interaction.commandName === 'list_challenges'){
         await interaction.deferReply();
 
         // Fetch active bets
         const activeBets = await runQuery(con, `SELECT id, description, deposit_amount, duration, status FROM bets WHERE status = 'active'`, ``);
     
         if (activeBets.length === 0) {
-            return await interaction.editReply("❌ No active bets available.");
+            return await interaction.editReply("❌ No active challenges available.");
         }
     
         // Format bets into a list
@@ -134,8 +135,8 @@ client.on('interactionCreate', async interaction => {
         await interaction.reply(`Huge Error registering. Please try again later.`);
     }
 
-    // start_bet Command
-    else if(interaction.commandName === 'start_bet') {
+    // start_challenge Command
+    else if(interaction.commandName === 'start_challenge') {
         await interaction.deferReply();
         await interaction.editReply({ content: "Deploying New Safe for you...." });
         const discordId = interaction.user.id;
@@ -206,10 +207,10 @@ client.on('interactionCreate', async interaction => {
     }
 
     // Bet_info Command
-    else if(interaction.commandName === 'bet_info'){
+    else if(interaction.commandName === 'challenge_info'){
         await interaction.deferReply();
 
-        const betId = interaction.options.get('bet_id', true)?.value as number;
+        const betId = interaction.options.get('challenge_id', true)?.value as number;
 
         // Fetch bet details
         const betData = await runQuery(con, `SELECT * FROM bets WHERE id = ${betId} LIMIT 1`, ``);
@@ -236,7 +237,7 @@ client.on('interactionCreate', async interaction => {
     else if(interaction.commandName === 'verify_payment'){
         await interaction.deferReply();
 
-        const betId = interaction.options.get('bet_id', true)?.value as Number;
+        const betId = interaction.options.get('challenge_id', true)?.value as Number;
         const txHash = interaction.options.get('tx_hash', true)?.value as string;
         const userDiscordId = interaction.user.id;
 
@@ -244,7 +245,7 @@ client.on('interactionCreate', async interaction => {
         const betData = await runQuery(con, `SELECT wallet_address, deposit_amount FROM bets WHERE id = ${betId} LIMIT 1`, `fetching bet details...`);
 
         if (betData.length === 0) {
-            return await interaction.editReply(`❌ Bet with ID ${betId} not found.`);
+            return await interaction.editReply(`❌ Challenge with ID ${betId} not found.`);
         }
 
         const { wallet_address: receiver, deposit_amount } = betData[0];
@@ -284,14 +285,14 @@ client.on('interactionCreate', async interaction => {
         }
 
         await interaction.editReply(`✅ Payment verified! You are now a confirmed participant in Bet #${betId}.`);
-        addOwner(receiver, sender);
+        // addOwner(receiver, sender);
     }
 
     // end_bet Command
-    else if (interaction.commandName === 'end_bet') {
+    else if (interaction.commandName === 'end_challenge') {
         await interaction.deferReply();
     
-        const betId = interaction.options.get('bet_id', true)?.value as number;
+        const betId = interaction.options.get('challenge_id', true)?.value as number;
         const userDiscordId = interaction.user.id;
     
         // Fetch bet details
@@ -337,7 +338,7 @@ client.on('interactionCreate', async interaction => {
     else if (interaction.commandName === 'submit_result') {
         await interaction.deferReply();
     
-        const betId = interaction.options.get('bet_id', true)?.value as number;
+        const betId = interaction.options.get('challenge_id', true)?.value as number;
         const resultOption = interaction.options.get('proof');
         if (!resultOption) {
             return await interaction.editReply(`❌ You must provide a result (completed/failed).`);
@@ -403,7 +404,7 @@ client.on('interactionCreate', async interaction => {
     else if (interaction.commandName === 'validate_result') {
         await interaction.deferReply();
     
-        const betId = interaction.options.get('bet_id', true)?.value as number;
+        const betId = interaction.options.get('challenge_id', true)?.value as number;
         const participantId = interaction.options.get('user', true)?.value as string;
         const validation = interaction.options.get('vote', true)?.value as 'completed' | 'failed';
         const validatorId = interaction.user.id;
@@ -415,7 +416,7 @@ client.on('interactionCreate', async interaction => {
         );
     
         if (validatorCheck.length === 0) {
-            return await interaction.editReply(`❌ You are not a participant in Bet #${betId}.`);
+            return await interaction.editReply(`❌ You are not a participant in challenge #${betId}.`);
         }
     
         // Check if the participant has submitted a result
@@ -476,7 +477,7 @@ client.on('interactionCreate', async interaction => {
     else if (interaction.commandName === 'redeem') {
         await interaction.deferReply();
     
-        const betId = interaction.options.get('bet_id', true)?.value as number;
+        const betId = interaction.options.get('challenge_id', true)?.value as number;
         const userDiscordId = interaction.user.id;
     
         // Check if bet exists and is ended
@@ -487,11 +488,11 @@ client.on('interactionCreate', async interaction => {
         );
     
         if (betData.length === 0) {
-            return await interaction.editReply(`❌ Bet with ID ${betId} not found.`);
+            return await interaction.editReply(`❌ challenge with ID ${betId} not found.`);
         }
     
         if (betData[0].status !== 'ended') {
-            return await interaction.editReply(`⚠️ This bet has not ended yet.`);
+            return await interaction.editReply(`⚠️ This challenge has not ended yet.`);
         }
     
         // Check if user is a confirmed participant
@@ -550,7 +551,6 @@ client.on('interactionCreate', async interaction => {
             await interaction.editReply(`❌ Redemption failed. Please try again later.`);
         }
     }
-    
 });
 
 client.login(process.env.TOKEN)

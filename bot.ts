@@ -1,6 +1,14 @@
-import { Client, Events, GatewayIntentBits, ChatInputCommandInteraction } from 'discord.js';
+import { Client, 
+        Events, 
+        GatewayIntentBits, 
+        ChatInputCommandInteraction,
+} from 'discord.js';
+
 import 'dotenv/config';
 import { createCon, endCon, runQuery } from './bot/database';
+import { agent } from './agent';
+import { isValidEthereumAddress, isAdmin } from './utils';
+import { HumanMessage } from "@langchain/core/messages";
 
 var con = createCon;
 
@@ -97,13 +105,107 @@ client.on('interactionCreate', async interaction => {
         }
     } 
     
-    else if(interaction.commandName === 'balance') {
-        const bal = await runQuery(con, `SELECT balance FROM balance WHERE username ="${interaction.user.username}";`, `Balance queried for ${interaction.user.username}`);
-        await interaction.reply(`${bal[0].balance}\$`);
+    // Register Command
+    else if(interaction.commandName === 'register') {
+        const discordId = interaction.user.id;
+        const username = interaction.user.username;
+        const ethAddress = interaction.options.get('wallet_address', true)?.value as string;
+        console.log("eth add of user - ", isValidEthereumAddress(ethAddress), ethAddress);
+
+        if (isValidEthereumAddress(ethAddress)){
+        try {
+            // Check if user already exists
+            const checkUser = await runQuery(con, `SELECT * FROM users WHERE discord_id = ${discordId}`, `Checking if user - ${username} already exists in the table`);
+            if (checkUser.length > 0) {
+                return interaction.reply({ content: 'You are already registered.' });
+            }
+    
+            // Insert user into database
+            await runQuery(con, 
+                `INSERT INTO users (discord_id, username, eth_address) VALUES (${discordId}, "${username}", "${ethAddress}")`, `Inseted New User - ${username} with ${ethAddress} in the database!`
+            );
+    
+            interaction.reply({ content: `Successfully registered! 🎉\nYour ETH Address: ${ethAddress}` });
+        } catch (error) {
+            console.error('Error registering user:', error);
+            interaction.reply({ content: 'Error registering. Please try again later.' });
+        }}
+        else{
+            interaction.reply({content:`Please enter an valid ETH address`});
+        }
+
+        await interaction.reply(`Huge Error registering. Please try again later.`);
+    }
+
+    // start_bet Command
+    else if(interaction.commandName === 'start_bet') {
+        await interaction.deferReply();
+        await interaction.editReply({ content: "Deploying New Safe for you...." });
+        const discordId = interaction.user.id;
+        const bet_desc = interaction.options.get('description', true)?.value as string;
+        const depositAmt = interaction.options.get('deposit_fee', true)?.value as Number; // USDC
+        const duration = interaction.options.get('duration', true)?.value as Number; // In hours
+
+        // if (!isAdmin(interaction)) {
+        //     return interaction.reply({ content: "You must be an admin to use this command.", ephemeral: true });
+        // }
+
+        // Call agent to deploy safe!
+        // const agentFinalState = await agent.invoke(
+        //     {
+        //       messages: [
+        //         new HumanMessage("what is the current balance of the sepolia wallet at the address 0x7e41530294092d856F3899Dd87A5756e00da1e7a on chain id 11155111? Please answer in ETH and its total value in USD."),
+        //       ],
+        //     },
+        //     { configurable: { thread_id: "42" } }
+        //   );
+        
+        const content = `**🌐 Safe Multisignature Wallet Deployed Successfully 🌐**
+          Here are the details of your newly deployed Safe multisig wallet on Sepolia:
+              
+          - **Safe Address:** sep:0xD4d71F522EFCE5AFB604B8A3B4E1dc12886b1D5f
+          - **Salt Nonce:** 6017049909
+              
+          You can interact with your new Safe wallet using the following link:
+              
+          https://app.safe.global/home?safe=sep%3A0xD4d71F522EFCE5AFB604B8A3B4E1dc12886b1D5f
+              
+          **⚠️ Remember to keep your recovery phrases and master seed safe! ⚠️**
+              
+          If you need any further assistance or have other requests, feel free to ask!
+              
+          Happy managing your funds securely with Safe! 🔒💰`
+        
+        const contentString = String(content);
+        const safeAddressMatch = contentString.match(/0x[a-fA-F0-9]{40}/);
+        const safeAddress = safeAddressMatch ? safeAddressMatch[0] : null;
+
+        if (!safeAddress) {
+          console.error("Safe address not found in response.");
+          await interaction.editReply("Failed to retrieve Safe address.");
+          return;
+        }
+
+        try {
+            const createNewBet = await runQuery(
+                con, 
+                `INSERT INTO bets (creator_discord_id, deposit_amount, wallet_address, duration, description)  
+                VALUES ('${discordId}', ${depositAmt}, '${safeAddress}', ${duration}, '${bet_desc}');`,
+                `Created a new bet in the bets table!`
+            );
+            console.log("new created Bet - ",createNewBet);
+
+            await interaction.followUp(`✅ Bet created successfully!\n\nSafe Address: \`${safeAddress}\`\n\n${content}`);
+        }catch(error){
+            console.error("Database error:", error);
+            await interaction.followUp("❌ Failed to create bet in the database.");
+        }
+
+        // await interaction.editReply(`Some error occured!`);
     }
 
     else if(interaction.commandName === 'ping'){
-        await interaction.reply(`pong! ${interaction.user.username}`)
+        await interaction.reply(`pong! ${interaction.user.tag}`)
     }
 });
 

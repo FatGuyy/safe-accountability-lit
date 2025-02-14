@@ -5,7 +5,7 @@ export const createCon: Pool = mysql.createPool({
     host: "localhost",
     user: "root",
     password: process.env.DB_PASS,
-    database: "ecoBot",
+    database: "safeAgent",
     connectionLimit: 10, // Allows multiple queries without new connections
 });
 

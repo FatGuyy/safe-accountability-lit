@@ -33,7 +33,7 @@ export const deployNewSafe = async () => {
     provider: "https://rpc.ankr.com/eth_sepolia",
     signer: process.env.AGENT_PRIVATE_KEY,
     safeOptions: {
-      owners: [process.env.AGENT_PRIVATE_KEY as string],
+      owners: [process.env.AGENT_ADDRESS as string],
       threshold: 1
     }
   });
@@ -41,7 +41,7 @@ export const deployNewSafe = async () => {
   const safeAddress = await safeClient.getAddress();
 
   return `A new Safe multisig was successfully deployed on Sepolia. You can see it live at https://app.safe.global/home?safe=sep:${safeAddress}. The saltNonce used was ${saltNonce}.
-  // Now, tell the user that you have create this safe and give the above details to the user.`;
+  // Now, tell the user that you have create this safe and give the above details to the user in a good format. Make sure the first address in your response is the safe Address.`;
 };
 
 export const sendRandomTnx = async ({ safeAddress }) =>{

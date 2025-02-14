@@ -4,32 +4,128 @@ dotenv.config();
 
 
 const commands = [
-    new SlashCommandBuilder()
-        .setName('work')
-        .setDescription('Gives 100$')
-        .toJSON(),
-    new SlashCommandBuilder()
-        .setName('balance')
-        .setDescription('Check your balance')
-        .toJSON(),
-    new SlashCommandBuilder()
-        .setName('send')
-        .setDescription('Sends Money to someone')
-        .addIntegerOption(option => 
-            option.setName('amount')
-                .setDescription('The amount to send')
-                .setRequired(true)
-        )
-        .addUserOption(option => 
-            option.setName('user')
-                .setDescription('The recipient')
-                .setRequired(true)
-        )
-        .toJSON(),
-    new SlashCommandBuilder()
-        .setName('ping')
-        .setDescription('says pong')
-        .toJSON(),
+  new SlashCommandBuilder()
+  .setName('register')
+  .setDescription('Register your Ethereum wallet with the bot!')
+  .addStringOption(option =>
+      option.setName('wallet_address')
+          .setDescription('Enter your wallet address')
+          .setRequired(true)
+  )
+  .toJSON(),
+  new SlashCommandBuilder()
+  .setName('start_bet')
+  .setDescription('Start a new bet')
+  .addStringOption(option =>
+      option.setName('description')
+          .setDescription('Describe the bet')
+          .setRequired(true)
+  )
+  .addNumberOption(option =>
+      option.setName('deposit_fee')
+          .setDescription('Deposit fee in USDC')
+          .setRequired(true)
+  )
+  .addIntegerOption(option =>
+      option.setName('duration')
+          .setDescription('Duration of the bet in hours')
+          .setRequired(true)
+  )
+  .toJSON(),
+  new SlashCommandBuilder()
+    .setName('join_bet')
+    .setDescription('Join an active bet')
+    .addStringOption(option =>
+        option.setName('bet_id')
+            .setDescription('The ID of the bet')
+            .setRequired(true)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('verify_payment')
+    .setDescription('Verify your deposit transaction')
+    .addStringOption(option =>
+        option.setName('bet_id')
+            .setDescription('The ID of the bet')
+            .setRequired(true)
+    )
+    .addStringOption(option =>
+        option.setName('tx_hash')
+            .setDescription('Your transaction hash')
+            .setRequired(true)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('submit_result')
+    .setDescription('Submit proof of bet completion')
+    .addStringOption(option =>
+        option.setName('bet_id')
+            .setDescription('The ID of the bet')
+            .setRequired(true)
+    )
+    .addStringOption(option =>
+        option.setName('proof')
+            .setDescription('Proof of completion (URL, text, etc.)')
+            .setRequired(true)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('validate_result')
+    .setDescription('Vote on a participant’s result submission')
+    .addStringOption(option =>
+        option.setName('bet_id')
+            .setDescription('The ID of the bet')
+            .setRequired(true)
+    )
+    .addUserOption(option =>
+        option.setName('user')
+            .setDescription('The user whose result is being verified')
+            .setRequired(true)
+    )
+    .addStringOption(option =>
+        option.setName('vote')
+            .setDescription('Vote "yes" or "no"')
+            .setRequired(true)
+            .addChoices(
+                { name: 'Yes', value: 'yes' },
+                { name: 'No', value: 'no' }
+            )
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('redeem')
+    .setDescription('Redeem winnings from a completed bet')
+    .addStringOption(option =>
+        option.setName('bet_id')
+            .setDescription('The ID of the bet')
+            .setRequired(true)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('list_bets')
+    .setDescription('List all active bets')
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('bet_info')
+    .setDescription('Get details of a specific bet')
+    .addStringOption(option =>
+        option.setName('bet_id')
+            .setDescription('The ID of the bet')
+            .setRequired(true)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('end_bet')
+    .setDescription('End a bet and start payout process')
+    .addStringOption(option =>
+        option.setName('bet_id')
+            .setDescription('The ID of the bet')
+            .setRequired(true)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('ping')
+    .setDescription('Says Pong')
 ];
 
 (async () => {
